@@ -2,20 +2,13 @@ import { Box } from "lucide-react";
 import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 
-//El correo configurado para la administración de la página web online, ademas de que pueda entrar en el panel de administración
 const ADMIN_EMAIL = "admin@ahbsolutions.com";
 
 export function Footer() {
-
-  
-  const { user } = useAuth(); // Obtenemos el usuario actual
-  
-  // Comprobamos si es el administrador para que se le muestre el acceso al panel de administración en el footer de la página
-
+  const { user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
 
   const handleLinkClick = () => {
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -33,6 +26,7 @@ export function Footer() {
               Calidad y resistencia en cada diseño.
             </p>
           </div>
+
           <div>
             <h4 className="text-lg font-semibold mb-4 text-gray-100">Enlaces Rápidos</h4>
             <ul className="space-y-2">
@@ -42,10 +36,10 @@ export function Footer() {
               <li><Link to="/about" onClick={handleLinkClick} className="text-gray-400 hover:text-white transition-colors">Sobre Nosotros</Link></li>
             </ul>
           </div>
+
           <div>
             <h4 className="text-lg font-semibold mb-4 text-gray-100">Cuenta</h4>
             <ul className="space-y-2">
-              
               {!user && (
                 <>
                   <li><Link to="/login" onClick={handleLinkClick} className="text-gray-400 hover:text-white transition-colors">Iniciar Sesión</Link></li>
@@ -64,65 +58,52 @@ export function Footer() {
                   </Link>
                 </li>
               )}
-              
             </ul>
           </div>
         </div>
 
-        {/* --- SECCIÓN DE MÉTODOS DE PAGO --- */}
+        {/* MÉTODOS DE PAGO */}
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col items-center justify-center">
           <h4 className="text-sm font-semibold text-gray-400 mb-6 uppercase tracking-wider">
             Pago 100% Seguro
           </h4>
-          
-          {/* Fila de iconos de pago (Aumentados de tamaño) */}
+
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 items-center opacity-80 hover:opacity-100 transition-opacity">
-            {/* Visa */}
 
             <a href="https://www.visa.es/paga-con-visa/click-to-pay.html" target="_blank" rel="noopener noreferrer">
-            <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
-              
-              <img src="public\imagenes_productos\logoVisa.jpg" alt="Visa" className="h-7 w-auto object-contain" />
-            </div>
+              <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
+                <img src="/imagenes_productos/logoVisa.jpg" alt="Visa" className="h-7 w-auto object-contain" />
+              </div>
             </a>
-            
-            {/* Mastercard */}
 
             <a href="https://www.mastercard.com/es/es/personal/ways-to-pay/click-to-pay.html" target="_blank" rel="noopener noreferrer">
-            <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
-              
-              <img src="public\imagenes_productos\logoMastercard.jpg" alt="Mastercard" className="h-8 w-auto object-contain" />
-            </div>
-            </a>
-            
-            {/* American Express */}
-            
-            <a href="https://www.americanexpress.com/es/beneficios/centro-de-seguridad/formas-de-pagar/pagos-moviles/" target="_blank" rel="noopener noreferrer">
-            <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
-              
-              <img src="public\imagenes_productos\logoAmericanExpress.jpg" alt="American Express" className="h-8 w-auto object-contain" />
-            </div>
+              <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
+                <img src="/imagenes_productos/logoMastercard.jpg" alt="Mastercard" className="h-8 w-auto object-contain" />
+              </div>
             </a>
 
-            {/* Diners Club */}
+            <a href="https://www.americanexpress.com/es/beneficios/centro-de-seguridad/formas-de-pagar/pagos-moviles/" target="_blank" rel="noopener noreferrer">
+              <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
+                <img src="/imagenes_productos/logoAmericanExpress.jpg" alt="American Express" className="h-8 w-auto object-contain" />
+              </div>
+            </a>
 
             <a href="https://www.dinersclub.es/tarjetas-virtuales" target="_blank" rel="noopener noreferrer">
-            <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">              
-                <img src="public\imagenes_productos\logoDinnersClubInternational.jpg" alt="Diners Club" className="h-7 w-auto object-contain" />             
-            </div> 
+              <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
+                <img src="/imagenes_productos/logoDinnersClubInternational.jpg" alt="Diners Club" className="h-7 w-auto object-contain" />
+              </div>
             </a>
-            
-            {/* PayPal */}
 
-              <a href="https://www.paypal.com/es/legalhub/paypal/useragreement-full" target="_blank" rel="noopener noreferrer">
-            <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
-           <img src="public\imagenes_productos\logoPayPal.jpg" alt="PayPal" className="h-6 w-auto object-contain"/>
-            </div>
+            <a href="https://www.paypal.com/es/legalhub/paypal/useragreement-full" target="_blank" rel="noopener noreferrer">
+              <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
+                <img src="/imagenes_productos/logoPayPal.jpg" alt="PayPal" className="h-6 w-auto object-contain"/>
+              </div>
             </a>
+
           </div>
         </div>
 
-        {/* Copyright y Políticas */}
+        {/* COPYRIGHT */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center">
           <p>&copy; {new Date().getFullYear()} AHB Solutions. Todos los derechos reservados.</p>
           <div className="mt-4 md:mt-0 space-x-6">
