@@ -278,7 +278,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     syncSupabase(productId, quantity, 'upsert');
   };
 
-  const clearCart = () => {
+  const clearCart = () => { 
     setItems([]);
     limpiarCarritoLocal();
     limpiarSupabase();
