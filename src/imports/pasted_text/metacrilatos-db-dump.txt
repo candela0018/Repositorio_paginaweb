@@ -1,0 +1,450 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 20-03-2026 a las 12:58:22
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `metacrilatos`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `carrito`
+--
+
+CREATE TABLE `carrito` (
+  `ID_CARRITO` int(200) NOT NULL,
+  `ID_CLIENTE` int(200) DEFAULT NULL,
+  `CODIGO_CLIENTE` int(200) DEFAULT NULL,
+  `FECHA_CREACION` datetime DEFAULT NULL,
+  `ESTADO` varchar(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `carrito_productos`
+--
+
+CREATE TABLE `carrito_productos` (
+  `ID_CARRITO_PRODUCTOS` int(200) NOT NULL,
+  `ID_CARRITO` int(200) DEFAULT NULL,
+  `ID_PRODUCTO` int(200) DEFAULT NULL,
+  `CANTIDAD` int(200) DEFAULT NULL,
+  `PRECIO` decimal(10,2) DEFAULT NULL,
+  `PERSONALIZACION` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `categoria_productos`
+--
+
+CREATE TABLE `categoria_productos` (
+  `ID_CATEGORIA` int(200) NOT NULL,
+  `CODIGO_CATEGORIA` int(200) DEFAULT NULL,
+  `NOMBRE` varchar(200) DEFAULT NULL,
+  `DESCRIPCION` text DEFAULT NULL,
+  `CATEGORIA_PADRE` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `categoria_productos`
+--
+
+INSERT INTO `categoria_productos` (`ID_CATEGORIA`, `CODIGO_CATEGORIA`, `NOMBRE`, `DESCRIPCION`, `CATEGORIA_PADRE`) VALUES
+(1, 1001, 'Expositores de sobremesa', 'Categoría de expositores de sobremesa', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `cliente`
+--
+
+CREATE TABLE `cliente` (
+  `ID_CLIENTE` int(200) NOT NULL,
+  `CODIGO_CLIENTE` int(200) DEFAULT NULL,
+  `DNI` varchar(200) DEFAULT NULL,
+  `NOMBRE_COMPLETO` varchar(200) DEFAULT NULL,
+  `EMAIL` varchar(200) DEFAULT NULL,
+  `TELEFONO` int(200) DEFAULT NULL,
+  `CONTRASEÑA` varchar(200) DEFAULT NULL,
+  `FECHA_REGISTRO` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalle_pedido`
+--
+
+CREATE TABLE `detalle_pedido` (
+  `ID_DETALLE` int(200) NOT NULL,
+  `ID_PEDIDO` int(200) DEFAULT NULL,
+  `ID_PRODUCTO` int(200) DEFAULT NULL,
+  `CANTIDAD` int(200) DEFAULT NULL,
+  `PRECIO_UNITARIO` decimal(10,2) DEFAULT NULL,
+  `PERSONALIZACION` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `direcciones_clientes`
+--
+
+CREATE TABLE `direcciones_clientes` (
+  `ID_DIRECCION` int(200) NOT NULL,
+  `ID_CLIENTE` int(200) DEFAULT NULL,
+  `CODIGO_CLIENTE` int(200) DEFAULT NULL,
+  `DIRECCION` varchar(200) DEFAULT NULL,
+  `CIUDAD` varchar(100) DEFAULT NULL,
+  `PROVINCIA` varchar(100) DEFAULT NULL,
+  `CODIGO_POSTAL` int(50) DEFAULT NULL,
+  `PAIS` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `envios`
+--
+
+CREATE TABLE `envios` (
+  `ID_ENVIO` int(200) NOT NULL,
+  `ID_PEDIDO` int(200) DEFAULT NULL,
+  `EMPRESA_TRANSPORTE` varchar(200) DEFAULT NULL,
+  `NUMERO_SEGUIMIENTO` varchar(200) DEFAULT NULL,
+  `FECHA_ENVIO` datetime DEFAULT NULL,
+  `FECHA_ENTREGA` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `imagen_productos`
+--
+
+CREATE TABLE `imagen_productos` (
+  `ID_IMAGEN` int(200) NOT NULL,
+  `ID_PRODUCTO` int(11) DEFAULT NULL,
+  `URL_IMAGEN` varchar(200) DEFAULT NULL,
+  `IMAGEN_PRINCIPAL` tinyint(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `imagen_productos`
+--
+
+INSERT INTO `imagen_productos` (`ID_IMAGEN`, `ID_PRODUCTO`, `URL_IMAGEN`, `IMAGEN_PRINCIPAL`) VALUES
+(1, 1, '../Productos/imagenesProductos/ExpositorSobremesa/ExpositorSobremesa1.jpg', 1),
+(2, 2, 'Productos/imagenesProductos/expositorA4.jpg', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `pagos`
+--
+
+CREATE TABLE `pagos` (
+  `ID_PAGO` int(200) NOT NULL,
+  `ID_PEDIDO` int(200) DEFAULT NULL,
+  `METODO` varchar(50) DEFAULT NULL,
+  `ESTADO` varchar(50) DEFAULT NULL,
+  `FECHA_PAGO` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `pedidos`
+--
+
+CREATE TABLE `pedidos` (
+  `ID_PEDIDO` int(200) NOT NULL,
+  `ID_CLIENTE` int(200) DEFAULT NULL,
+  `CODIGO_CLIENTE` int(200) DEFAULT NULL,
+  `FECHA_PEDIDO` datetime DEFAULT NULL,
+  `ESTADO` varchar(200) DEFAULT NULL,
+  `TOTAL` decimal(10,2) DEFAULT NULL,
+  `ID_DIRECCION` int(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `productos`
+--
+
+CREATE TABLE `productos` (
+  `ID_PRODUCTO` int(200) NOT NULL,
+  `NOMBRE` varchar(200) DEFAULT NULL,
+  `DESCRIPCION` text DEFAULT NULL,
+  `PRECIO` decimal(10,2) DEFAULT NULL,
+  `STOCK` int(200) DEFAULT NULL,
+  `ID_CATEGORIA` int(200) DEFAULT NULL,
+  `MATERIAL` varchar(200) DEFAULT NULL,
+  `COLOR` varchar(200) DEFAULT NULL,
+  `GROSOR_MM` decimal(5,2) DEFAULT NULL,
+  `ANCHO_CM` decimal(6,2) DEFAULT NULL,
+  `ALTO_CM` decimal(6,2) DEFAULT NULL,
+  `PERSONALIZADO` tinyint(1) DEFAULT NULL,
+  `FECHA_CREACION` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `productos`
+--
+
+INSERT INTO `productos` (`ID_PRODUCTO`, `NOMBRE`, `DESCRIPCION`, `PRECIO`, `STOCK`, `ID_CATEGORIA`, `MATERIAL`, `COLOR`, `GROSOR_MM`, `ANCHO_CM`, `ALTO_CM`, `PERSONALIZADO`, `FECHA_CREACION`) VALUES
+(1, 'Expositor A5, forma L', 'Expositor en forma de L, tamaño A5', 2.95, NULL, 1, 'Metacrilato', 'Transparente', 3.00, 14.80, 21.00, 0, '2026-03-18 11:46:54'),
+(2, 'Expositor A4, forma L', 'Expositor en forma de L, tamaño A4', 3.50, NULL, 1, 'Metacrilato', 'Transparente', 3.00, 21.00, 29.70, 0, '2026-03-18 11:46:54');
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  ADD PRIMARY KEY (`ID_CARRITO`),
+  ADD KEY `ID_CLIENTE` (`ID_CLIENTE`),
+  ADD KEY `CODIGO_CLIENTE` (`CODIGO_CLIENTE`);
+
+--
+-- Indices de la tabla `carrito_productos`
+--
+ALTER TABLE `carrito_productos`
+  ADD PRIMARY KEY (`ID_CARRITO_PRODUCTOS`),
+  ADD KEY `ID_CARRITO` (`ID_CARRITO`),
+  ADD KEY `ID_PRODUCTO` (`ID_PRODUCTO`);
+
+--
+-- Indices de la tabla `categoria_productos`
+--
+ALTER TABLE `categoria_productos`
+  ADD PRIMARY KEY (`ID_CATEGORIA`),
+  ADD UNIQUE KEY `CODIGO_CATEGORIA` (`CODIGO_CATEGORIA`),
+  ADD KEY `CATEGORIA_PADRE` (`CATEGORIA_PADRE`);
+
+--
+-- Indices de la tabla `cliente`
+--
+ALTER TABLE `cliente`
+  ADD PRIMARY KEY (`ID_CLIENTE`),
+  ADD UNIQUE KEY `CODIGO_CLIENTE` (`CODIGO_CLIENTE`);
+
+--
+-- Indices de la tabla `detalle_pedido`
+--
+ALTER TABLE `detalle_pedido`
+  ADD PRIMARY KEY (`ID_DETALLE`),
+  ADD KEY `ID_PEDIDO` (`ID_PEDIDO`),
+  ADD KEY `ID_PRODUCTO` (`ID_PRODUCTO`);
+
+--
+-- Indices de la tabla `direcciones_clientes`
+--
+ALTER TABLE `direcciones_clientes`
+  ADD PRIMARY KEY (`ID_DIRECCION`),
+  ADD KEY `ID_CLIENTE` (`ID_CLIENTE`),
+  ADD KEY `CODIGO_CLIENTE` (`CODIGO_CLIENTE`);
+
+--
+-- Indices de la tabla `envios`
+--
+ALTER TABLE `envios`
+  ADD PRIMARY KEY (`ID_ENVIO`),
+  ADD KEY `ID_PEDIDO` (`ID_PEDIDO`);
+
+--
+-- Indices de la tabla `imagen_productos`
+--
+ALTER TABLE `imagen_productos`
+  ADD PRIMARY KEY (`ID_IMAGEN`),
+  ADD KEY `ID_PRODUCTO` (`ID_PRODUCTO`);
+
+--
+-- Indices de la tabla `pagos`
+--
+ALTER TABLE `pagos`
+  ADD PRIMARY KEY (`ID_PAGO`),
+  ADD KEY `ID_PEDIDO` (`ID_PEDIDO`);
+
+--
+-- Indices de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  ADD PRIMARY KEY (`ID_PEDIDO`),
+  ADD KEY `ID_CLIENTE` (`ID_CLIENTE`),
+  ADD KEY `CODIGO_CLIENTE` (`CODIGO_CLIENTE`),
+  ADD KEY `ID_DIRECCION` (`ID_DIRECCION`);
+
+--
+-- Indices de la tabla `productos`
+--
+ALTER TABLE `productos`
+  ADD PRIMARY KEY (`ID_PRODUCTO`),
+  ADD KEY `ID_CATEGORIA` (`ID_CATEGORIA`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  MODIFY `ID_CARRITO` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `carrito_productos`
+--
+ALTER TABLE `carrito_productos`
+  MODIFY `ID_CARRITO_PRODUCTOS` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `categoria_productos`
+--
+ALTER TABLE `categoria_productos`
+  MODIFY `ID_CATEGORIA` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de la tabla `cliente`
+--
+ALTER TABLE `cliente`
+  MODIFY `ID_CLIENTE` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `detalle_pedido`
+--
+ALTER TABLE `detalle_pedido`
+  MODIFY `ID_DETALLE` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `direcciones_clientes`
+--
+ALTER TABLE `direcciones_clientes`
+  MODIFY `ID_DIRECCION` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `envios`
+--
+ALTER TABLE `envios`
+  MODIFY `ID_ENVIO` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `imagen_productos`
+--
+ALTER TABLE `imagen_productos`
+  MODIFY `ID_IMAGEN` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `pagos`
+--
+ALTER TABLE `pagos`
+  MODIFY `ID_PAGO` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  MODIFY `ID_PEDIDO` int(200) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `productos`
+--
+ALTER TABLE `productos`
+  MODIFY `ID_PRODUCTO` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  ADD CONSTRAINT `carrito_ibfk_1` FOREIGN KEY (`ID_CLIENTE`) REFERENCES `cliente` (`ID_CLIENTE`),
+  ADD CONSTRAINT `carrito_ibfk_2` FOREIGN KEY (`CODIGO_CLIENTE`) REFERENCES `cliente` (`CODIGO_CLIENTE`);
+
+--
+-- Filtros para la tabla `carrito_productos`
+--
+ALTER TABLE `carrito_productos`
+  ADD CONSTRAINT `carrito_productos_ibfk_1` FOREIGN KEY (`ID_CARRITO`) REFERENCES `carrito` (`ID_CARRITO`),
+  ADD CONSTRAINT `carrito_productos_ibfk_2` FOREIGN KEY (`ID_PRODUCTO`) REFERENCES `productos` (`ID_PRODUCTO`);
+
+--
+-- Filtros para la tabla `categoria_productos`
+--
+ALTER TABLE `categoria_productos`
+  ADD CONSTRAINT `categoria_productos_ibfk_1` FOREIGN KEY (`CATEGORIA_PADRE`) REFERENCES `categoria_productos` (`ID_CATEGORIA`);
+
+--
+-- Filtros para la tabla `detalle_pedido`
+--
+ALTER TABLE `detalle_pedido`
+  ADD CONSTRAINT `detalle_pedido_ibfk_1` FOREIGN KEY (`ID_PEDIDO`) REFERENCES `pedidos` (`ID_PEDIDO`),
+  ADD CONSTRAINT `detalle_pedido_ibfk_2` FOREIGN KEY (`ID_PRODUCTO`) REFERENCES `productos` (`ID_PRODUCTO`);
+
+--
+-- Filtros para la tabla `direcciones_clientes`
+--
+ALTER TABLE `direcciones_clientes`
+  ADD CONSTRAINT `direcciones_clientes_ibfk_1` FOREIGN KEY (`ID_CLIENTE`) REFERENCES `cliente` (`ID_CLIENTE`),
+  ADD CONSTRAINT `direcciones_clientes_ibfk_2` FOREIGN KEY (`CODIGO_CLIENTE`) REFERENCES `cliente` (`CODIGO_CLIENTE`);
+
+--
+-- Filtros para la tabla `envios`
+--
+ALTER TABLE `envios`
+  ADD CONSTRAINT `envios_ibfk_1` FOREIGN KEY (`ID_PEDIDO`) REFERENCES `pedidos` (`ID_PEDIDO`);
+
+--
+-- Filtros para la tabla `imagen_productos`
+--
+ALTER TABLE `imagen_productos`
+  ADD CONSTRAINT `imagen_productos_ibfk_1` FOREIGN KEY (`ID_PRODUCTO`) REFERENCES `productos` (`ID_PRODUCTO`);
+
+--
+-- Filtros para la tabla `pagos`
+--
+ALTER TABLE `pagos`
+  ADD CONSTRAINT `pagos_ibfk_1` FOREIGN KEY (`ID_PEDIDO`) REFERENCES `pedidos` (`ID_PEDIDO`);
+
+--
+-- Filtros para la tabla `pedidos`
+--
+ALTER TABLE `pedidos`
+  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`ID_CLIENTE`) REFERENCES `cliente` (`ID_CLIENTE`),
+  ADD CONSTRAINT `pedidos_ibfk_2` FOREIGN KEY (`CODIGO_CLIENTE`) REFERENCES `cliente` (`CODIGO_CLIENTE`),
+  ADD CONSTRAINT `pedidos_ibfk_3` FOREIGN KEY (`ID_DIRECCION`) REFERENCES `direcciones_clientes` (`ID_DIRECCION`);
+
+--
+-- Filtros para la tabla `productos`
+--
+ALTER TABLE `productos`
+  ADD CONSTRAINT `productos_ibfk_1` FOREIGN KEY (`ID_CATEGORIA`) REFERENCES `categoria_productos` (`ID_CATEGORIA`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
