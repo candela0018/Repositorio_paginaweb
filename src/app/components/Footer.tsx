@@ -96,7 +96,9 @@ export function Footer() {
 
             <a href="https://www.paypal.com/es/legalhub/paypal/useragreement-full" target="_blank" rel="noopener noreferrer">
               <div className="bg-white px-2 py-1 rounded-md flex items-center justify-center h-18 w-25 shadow-sm border border-gray-200">
-                <img src="/imagenes_productos/logoPayPal.jpg" alt="PayPal" className="h-6 w-auto object-contain"/>
+                <img src="/imagenes_productos/logoPaypal.jpg" alt="PayPal" className="h-6 w-auto object-contain"/>
+                
+                
               </div>
             </a>
 
