@@ -88,6 +88,9 @@ export function Checkout() {
     setProcesando(true);
 
     try {
+      // TRUCO: Simular el tiempo de respuesta de la pasarela de pago del banco (2 segundos)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       const numPedido = generarNumeroPedido();
 
       // 1. Guardar dirección de envío
