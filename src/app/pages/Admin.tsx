@@ -615,7 +615,7 @@ export function Admin() {
                   <tr className="bg-[#F9FAFB] border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     <th className="px-6 py-4">Cliente</th>
                     <th className="px-6 py-4">Contacto</th>
-                    <th className="px-6 py-4">Rol / Estado</th>
+                    <th className="px-6 py-4">Rol</th>
                     <th className="px-6 py-4">Fecha Registro</th>
                   </tr>
                 </thead>
@@ -635,12 +635,7 @@ export function Admin() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{c.email}</td>
                       <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 w-fit">{c.rol}</span>
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-green-600 uppercase">
-                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Activo
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 w-fit">{c.rol}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-xs text-gray-500">
