@@ -17,6 +17,20 @@ function generarNumeroPedido(): string {
   return `AHB-${fecha}-${random}`;
 }
 
+// Formateador para poner espacios en el teléfono (ej: 600 000 000)
+function formatearTelefono(tel: string): string {
+  if (!tel) return '';
+  // Si tiene más de 6 dígitos: XXX XXX XXX
+  if (tel.length > 6) {
+    return `${tel.slice(0, 3)} ${tel.slice(3, 6)} ${tel.slice(6, 9)}`;
+  }
+  // Si tiene más de 3 dígitos: XXX XXX
+  if (tel.length > 3) {
+    return `${tel.slice(0, 3)} ${tel.slice(3)}`;
+  }
+  return tel;
+}
+
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export function Checkout() {
@@ -25,6 +39,7 @@ export function Checkout() {
   const navigate  = useNavigate();
 
   // Formulario de Envío
+  const [pais,      setPais]      = useState('España');
   const [nombre,    setNombre]    = useState('');
   const [email,     setEmail]     = useState('');
   const [direccion, setDireccion] = useState('');
@@ -39,6 +54,18 @@ export function Checkout() {
   const [error,      setError]      = useState<string | null>(null);
   const [exito,      setExito]      = useState(false);
   const [numeroPedido, setNumeroPedido] = useState('');
+
+  // Lógica de Prefijos según el País
+  const getPrefijoTelefono = () => {
+    switch (pais) {
+      case 'España':   return '+34';
+      case 'Portugal': return '+351';
+      case 'Francia':  return '+33';
+      case 'Italia':   return '+39';
+      case 'Alemania': return '+49';
+      default:         return '+34';
+    }
+  };
 
   // Si el carrito está vacío y no hay éxito, volver al carrito
   if (items.length === 0 && !exito) {
@@ -82,7 +109,7 @@ export function Checkout() {
     try {
       const numPedido = generarNumeroPedido();
 
-      // 1. Guardar dirección de envío
+      // 1. Guardar dirección de envío (Ahora enviamos el 'pais' dinámico)
       const { data: dirData, error: dirError } = await supabase
         .from('direcciones_envio')
         .insert({
@@ -92,7 +119,7 @@ export function Checkout() {
           codigo_postal:    cp,
           ciudad:           ciudad,
           provincia:        provincia,
-          pais:             'España',
+          pais:             pais, // Se guarda el país elegido
           telefono:         telefono,
           es_predeterminada: false,
         })
@@ -177,6 +204,40 @@ export function Checkout() {
                 <Truck className="text-blue-600" /> Detalles de Envío
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Selector de País */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">País *</label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={pais}
+                      onChange={e => setPais(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-slate-700"
+                    >
+                      <option value="España">🇪🇸 España</option>
+                      <option value="Portugal">🇵🇹 Portugal</option>
+                      <option value="Francia">🇫🇷 Francia</option>
+                      <option value="Italia">🇮🇹 Italia</option>
+                      <option value="Alemania">🇩🇪 Alemania</option>
+                    </select>
+                    {/* Flechita para el select personalizado */}
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Provincia</label>
+                  <input
+                    type="text" value={provincia}
+                    onChange={e => setProvincia(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    placeholder="Madrid"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Nombre completo *</label>
                   <input
@@ -186,6 +247,7 @@ export function Checkout() {
                     placeholder="Juan García López"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Email *</label>
                   <input
@@ -195,36 +257,43 @@ export function Checkout() {
                     placeholder="juan@ejemplo.com"
                   />
                 </div>
+
+                {/* Teléfono Dinámico con Espacios */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Teléfono *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-slate-500 font-medium">+34</span>
+                      <span className="text-slate-500 font-medium">{getPrefijoTelefono()}</span>
                     </div>
                     <input
                       required
-                      type="tel" 
-                      value={telefono}
+                      type="tel"
+                      // Mostramos el valor ya formateado (con espacios)
+                      value={formatearTelefono(telefono)}
                       onChange={e => {
+                        // Limpiamos los espacios para comprobar la longitud real
                         const soloNumeros = e.target.value.replace(/\D/g, ''); 
                         if (soloNumeros.length <= 9) {
-                          setTelefono(soloNumeros);
+                          setTelefono(soloNumeros); // Guardamos internamente en el estado SIN espacios
                         }
                       }}
-                      className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      // Ajustamos el padding-left dependiendo de lo largo que sea el prefijo (+34 vs +351)
+                      className={`w-full ${getPrefijoTelefono().length > 3 ? 'pl-16' : 'pl-14'} pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all`}
                       placeholder="600 000 000"
                     />
                   </div>
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Provincia</label>
+                  <label className="text-sm font-semibold text-slate-700">Código Postal *</label>
                   <input
-                    type="text" value={provincia}
-                    onChange={e => setProvincia(e.target.value)}
+                    required type="text" value={cp}
+                    onChange={e => setCp(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                    placeholder="Jaén"
+                    placeholder="28001"
                   />
                 </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Dirección *</label>
                   <input
@@ -234,24 +303,17 @@ export function Checkout() {
                     placeholder="Calle Mayor 1, 2º A"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Ciudad *</label>
                   <input
                     required type="text" value={ciudad}
                     onChange={e => setCiudad(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                    placeholder="Úbeda"
+                    placeholder="Madrid"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Código Postal *</label>
-                  <input
-                    required type="text" value={cp}
-                    onChange={e => setCp(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                    placeholder="23400"
-                  />
-                </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Notas del pedido</label>
                   <textarea
@@ -282,7 +344,7 @@ export function Checkout() {
                     style={{ layout: "vertical", shape: "rect" }}
                     
                     onClick={(data, actions) => {
-                      if (!nombre || !email || !telefono || !direccion || !ciudad || !cp) {
+                      if (!nombre || !email || !telefono || !direccion || !ciudad || !cp || !pais) {
                         setError("Por favor, completa todos los campos obligatorios de envío (*).");
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         return actions.reject();
