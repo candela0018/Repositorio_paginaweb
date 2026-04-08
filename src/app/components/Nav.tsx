@@ -1,13 +1,24 @@
-import { Link, useLocation } from "react-router";
-import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../../lib/supabase";
+
+// 🔥 Mismo correo de administrador que usas en el Footer
+const ADMIN_EMAIL = "admin@ahbsolutions.com";
 
 export function Nav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
   const location = useLocation();
+  const navigate = useNavigate();
+  
   const { getTotalItems } = useCart();
+  const { user } = useAuth();
+  
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const handleCartClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (location.pathname === '/cart') {
@@ -21,6 +32,13 @@ export function Nav() {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate('/');
   };
 
   const navLinks = [
@@ -63,7 +81,8 @@ export function Nav() {
 
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* User Menu */}
+            
+            {/* User Dropdown */}
             <div 
               className="relative"
               onMouseEnter={() => setIsUserMenuOpen(true)}
@@ -76,21 +95,51 @@ export function Nav() {
               {/* Dropdown Menu */}
               {isUserMenuOpen && (
                 <div className="absolute right-0 pt-2">
-                  <div className="w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200">
-                    <Link
-                      to="/login"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <LogIn className="h-4 w-4 mr-3" />
-                      Iniciar Sesión
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <User className="h-4 w-4 mr-3" />
-                      Registrarse
-                    </Link>
+                  <div className="w-56 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+                    
+                    {user ? (
+                      <>
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-xs text-gray-500 mb-1">Conectado como:</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+                        </div>
+                        
+                        {isAdmin && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center px-4 py-2 mt-1 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                          >
+                            <Settings className="h-4 w-4 mr-3" />
+                            Panel de Administración
+                          </Link>
+                        )}
+                        
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1"
+                        >
+                          <LogOut className="h-4 w-4 mr-3" />
+                          Cerrar Sesión
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <LogIn className="h-4 w-4 mr-3" />
+                          Iniciar Sesión
+                        </Link>
+                        <Link
+                          to="/register"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <User className="h-4 w-4 mr-3" />
+                          Registrarse
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -155,22 +204,54 @@ export function Nav() {
             
             {/* Mobile Auth Divider */}
             <div className="border-t border-gray-200 pt-4 pb-2 mt-4">
-              <Link
-                to="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-              >
-                <LogIn className="mr-3 h-5 w-5" />
-                Iniciar Sesión
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 mt-1 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
-              >
-                <User className="mr-3 h-5 w-5" />
-                Crear Cuenta
-              </Link>
+              
+              {user ? (
+                <>
+                  <div className="px-3 py-2 mb-2 bg-gray-50 rounded-md">
+                    <p className="text-xs text-gray-500 mb-1">Conectado como:</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+                  </div>
+
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      <Settings className="mr-3 h-5 w-5" />
+                      Panel de Administración
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="mr-3 h-5 w-5" />
+                    Cerrar Sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                  >
+                    <LogIn className="mr-3 h-5 w-5" />
+                    Iniciar Sesión
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 mt-1 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <User className="mr-3 h-5 w-5" />
+                    Crear Cuenta
+                  </Link>
+                </>
+              )}
+              
             </div>
           </div>
         </div>
