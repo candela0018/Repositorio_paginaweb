@@ -7,6 +7,7 @@ import {
   CheckCircle, CreditCard, ShoppingBag, Truck,
   Loader2, AlertCircle, ArrowLeft
 } from 'lucide-react';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ export function Checkout() {
   const { user } = useAuth();
   const navigate  = useNavigate();
 
-  // Formulario
+  // Formulario de Envío
   const [nombre,    setNombre]    = useState('');
   const [email,     setEmail]     = useState('');
   const [direccion, setDireccion] = useState('');
@@ -32,11 +33,6 @@ export function Checkout() {
   const [provincia, setProvincia] = useState('');
   const [telefono,  setTelefono]  = useState('');
   const [notas,     setNotas]     = useState('');
-
-  // Pago (simulado)
-  const [numTarjeta,  setNumTarjeta]  = useState('');
-  const [caducidad,   setCaducidad]   = useState('');
-  const [cvc,         setCvc]         = useState('');
 
   // Estado del proceso
   const [procesando, setProcesando] = useState(false);
@@ -81,16 +77,9 @@ export function Checkout() {
     );
   }
 
-  // ── Guardar pedido en Supabase ───────────────────────────────────────────
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setProcesando(true);
-
+  // ── Guardar pedido en Supabase TRAS el cobro de PayPal ───────────────────
+  const handleApprove = async (details: any) => {
     try {
-      // TRUCO: Simular el tiempo de respuesta de la pasarela de pago del banco (2 segundos)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       const numPedido = generarNumeroPedido();
 
       // 1. Guardar dirección de envío
@@ -119,12 +108,12 @@ export function Checkout() {
           numero_pedido:      numPedido,
           usuario_id:         user?.id ?? null,
           direccion_envio_id: dirData.id,
-          estado:             'pendiente',
+          estado:             'procesando',
           subtotal:           subtotal,
           impuestos:          iva,
           gastos_envio:       0,
           total:              total,
-          metodo_pago:        'tarjeta',
+          metodo_pago:        'paypal',
           notas:              notas || null,
           fecha_pedido:       new Date().toISOString(),
         })
@@ -147,7 +136,7 @@ export function Checkout() {
         .from('lineas_pedido')
         .insert(lineas);
 
-      if (lineasError) throw new Error('Error al guardar los productos del pedido: ' + lineasError.message);
+      if (lineasError) throw new Error('Error al guardar los productos: ' + lineasError.message);
 
       // 4. Todo correcto: limpiar carrito y mostrar éxito
       setNumeroPedido(numPedido);
@@ -155,16 +144,14 @@ export function Checkout() {
       setExito(true);
 
     } catch (err: any) {
-      setError(err.message || 'Ha ocurrido un error al procesar el pedido.');
-    } finally {
-      setProcesando(false);
+      console.error("Error en Supabase:", err);
+      setError(err.message || 'Pago cobrado, pero ocurrió un error al guardarlo en base de datos. Contacta soporte.');
     }
   };
 
-  // ── Formulario ───────────────────────────────────────────────────────────
+  // ── Formulario e Interfaz ────────────────────────────────────────────────
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
-
       <Link to="/cart" className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 font-medium mb-8 transition-colors">
         <ArrowLeft size={18} /> Volver al carrito
       </Link>
@@ -182,7 +169,7 @@ export function Checkout() {
 
         {/* ── Formulario izquierda ── */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-10">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-10">
 
             {/* Datos de envío */}
             <div>
@@ -266,67 +253,73 @@ export function Checkout() {
               </div>
             </div>
 
-            {/* Método de pago */}
+            {/* Método de pago Real con PayPal */}
             <div className="border-t border-slate-100 pt-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                <CreditCard className="text-blue-600" /> Método de Pago
+                <CreditCard className="text-blue-600" /> Método de Pago Seguro
               </h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-sm text-blue-700">
-                🔒 Pago simulado — no se realizará ningún cargo real.
-              </div>
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Número de Tarjeta *</label>
-                  <input
-                    required type="text" value={numTarjeta} maxLength={19}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 16);
-                      setNumTarjeta(val.replace(/(.{4})/g, '$1 ').trim());
+              
+              {procesando ? (
+                <div className="flex flex-col items-center justify-center p-8 bg-blue-50 rounded-xl border border-blue-100">
+                  <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
+                  <p className="text-blue-800 font-medium">Procesando y guardando tu pedido...</p>
+                </div>
+              ) : (
+                <PayPalScriptProvider options={{ clientId: "test", currency: "EUR" }}>
+                  <PayPalButtons
+                    style={{ layout: "vertical", shape: "rect" }}
+                    
+                    onClick={(data, actions) => {
+                      if (!nombre || !email || !direccion || !ciudad || !cp) {
+                        setError("Por favor, completa todos los campos obligatorios de envío (*).");
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return actions.reject();
+                      }
+                      setError(null);
+                      return actions.resolve();
                     }}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono"
-                    placeholder="0000 0000 0000 0000"
+
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        intent: "CAPTURE",
+                        purchase_units: [
+                          {
+                            description: "Pedido en AHB Solutions",
+                            amount: {
+                              currency_code: "EUR",
+                              value: total.toFixed(2),
+                            },
+                          },
+                        ],
+                      });
+                    }}
+
+                    onApprove={async (data, actions) => {
+                      if (!actions.order) return;
+                      setProcesando(true);
+                      
+                      try {
+                        const details = await actions.order.capture();
+                        await handleApprove(details);
+                      } catch (err: any) {
+                        console.error("Error capturando pago:", err);
+                        setError("Ocurrió un error en la conexión con PayPal. Inténtalo de nuevo.");
+                      } finally {
+                        setProcesando(false);
+                      }
+                    }}
+
+                    onError={(err) => {
+                      console.error("Error PayPal:", err);
+                      setError("Se ha cancelado el pago o ha ocurrido un error. Inténtalo de nuevo.");
+                      setProcesando(false);
+                    }}
                   />
-                </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700">Caducidad *</label>
-                    <input
-                      required type="text" value={caducidad} maxLength={5}
-                      onChange={e => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        setCaducidad(val.length > 2 ? val.slice(0, 2) + '/' + val.slice(2) : val);
-                      }}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono"
-                      placeholder="MM/AA"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700">CVC *</label>
-                    <input
-                      required type="text" value={cvc} maxLength={3}
-                      onChange={e => setCvc(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono"
-                      placeholder="123"
-                    />
-                  </div>
-                </div>
-              </div>
+                </PayPalScriptProvider>
+              )}
             </div>
 
-            {/* Botón de pago */}
-            <button
-              type="submit"
-              disabled={procesando}
-              className="w-full flex justify-center items-center gap-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-200"
-            >
-              {procesando ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Procesando pedido...</>
-              ) : (
-                <><CreditCard className="w-5 h-5" /> Confirmar y Pagar {total.toFixed(2)} €</>
-              )}
-            </button>
-
-          </form>
+          </div>
         </div>
 
         {/* ── Resumen derecha ── */}
