@@ -9,7 +9,60 @@ import {
 } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers y Datos ──────────────────────────────────────────────────────────
+
+// Lista exhaustiva de países y sus prefijos telefónicos
+const PAISES = [
+  { nombre: 'Afganistán', prefijo: '+93' }, { nombre: 'Albania', prefijo: '+355' }, { nombre: 'Alemania', prefijo: '+49' }, { nombre: 'Andorra', prefijo: '+376' },
+  { nombre: 'Angola', prefijo: '+244' }, { nombre: 'Antigua y Barbuda', prefijo: '+1' }, { nombre: 'Arabia Saudita', prefijo: '+966' }, { nombre: 'Argelia', prefijo: '+213' },
+  { nombre: 'Argentina', prefijo: '+54' }, { nombre: 'Armenia', prefijo: '+374' }, { nombre: 'Australia', prefijo: '+61' }, { nombre: 'Austria', prefijo: '+43' },
+  { nombre: 'Azerbaiyán', prefijo: '+994' }, { nombre: 'Bahamas', prefijo: '+1' }, { nombre: 'Bangladés', prefijo: '+880' }, { nombre: 'Barbados', prefijo: '+1' },
+  { nombre: 'Baréin', prefijo: '+973' }, { nombre: 'Bélgica', prefijo: '+32' }, { nombre: 'Belice', prefijo: '+501' }, { nombre: 'Benín', prefijo: '+229' },
+  { nombre: 'Bielorrusia', prefijo: '+375' }, { nombre: 'Birmania', prefijo: '+95' }, { nombre: 'Bolivia', prefijo: '+591' }, { nombre: 'Bosnia y Herzegovina', prefijo: '+387' },
+  { nombre: 'Botsuana', prefijo: '+267' }, { nombre: 'Brasil', prefijo: '+55' }, { nombre: 'Brunéi', prefijo: '+673' }, { nombre: 'Bulgaria', prefijo: '+359' },
+  { nombre: 'Burkina Faso', prefijo: '+226' }, { nombre: 'Burundi', prefijo: '+257' }, { nombre: 'Bután', prefijo: '+975' }, { nombre: 'Cabo Verde', prefijo: '+238' },
+  { nombre: 'Camboya', prefijo: '+855' }, { nombre: 'Camerún', prefijo: '+237' }, { nombre: 'Canadá', prefijo: '+1' }, { nombre: 'Catar', prefijo: '+974' },
+  { nombre: 'Chad', prefijo: '+235' }, { nombre: 'Chile', prefijo: '+56' }, { nombre: 'China', prefijo: '+86' }, { nombre: 'Chipre', prefijo: '+357' },
+  { nombre: 'Ciudad del Vaticano', prefijo: '+379' }, { nombre: 'Colombia', prefijo: '+57' }, { nombre: 'Comoras', prefijo: '+269' }, { nombre: 'Congo', prefijo: '+242' },
+  { nombre: 'Corea del Sur', prefijo: '+82' }, { nombre: 'Costa Rica', prefijo: '+506' }, { nombre: 'Costa de Marfil', prefijo: '+225' }, { nombre: 'Croacia', prefijo: '+385' },
+  { nombre: 'Cuba', prefijo: '+53' }, { nombre: 'Dinamarca', prefijo: '+45' }, { nombre: 'Dominica', prefijo: '+1' }, { nombre: 'Ecuador', prefijo: '+593' },
+  { nombre: 'Egipto', prefijo: '+20' }, { nombre: 'El Salvador', prefijo: '+503' }, { nombre: 'Emiratos Árabes Unidos', prefijo: '+971' }, { nombre: 'Eritrea', prefijo: '+291' },
+  { nombre: 'Eslovaquia', prefijo: '+421' }, { nombre: 'Eslovenia', prefijo: '+386' }, { nombre: 'España', prefijo: '+34' }, { nombre: 'Estados Unidos', prefijo: '+1' },
+  { nombre: 'Estonia', prefijo: '+372' }, { nombre: 'Etiopía', prefijo: '+251' }, { nombre: 'Filipinas', prefijo: '+63' }, { nombre: 'Finlandia', prefijo: '+358' },
+  { nombre: 'Fiyi', prefijo: '+679' }, { nombre: 'Francia', prefijo: '+33' }, { nombre: 'Gabón', prefijo: '+241' }, { nombre: 'Gambia', prefijo: '+220' },
+  { nombre: 'Georgia', prefijo: '+995' }, { nombre: 'Ghana', prefijo: '+233' }, { nombre: 'Granada', prefijo: '+1' }, { nombre: 'Grecia', prefijo: '+30' },
+  { nombre: 'Guatemala', prefijo: '+502' }, { nombre: 'Guinea', prefijo: '+224' }, { nombre: 'Guinea-Bisáu', prefijo: '+245' }, { nombre: 'Guinea Ecuatorial', prefijo: '+240' },
+  { nombre: 'Guyana', prefijo: '+592' }, { nombre: 'Haití', prefijo: '+509' }, { nombre: 'Honduras', prefijo: '+504' }, { nombre: 'Hungría', prefijo: '+36' },
+  { nombre: 'India', prefijo: '+91' }, { nombre: 'Indonesia', prefijo: '+62' }, { nombre: 'Irak', prefijo: '+964' }, { nombre: 'Irán', prefijo: '+98' },
+  { nombre: 'Irlanda', prefijo: '+353' }, { nombre: 'Islandia', prefijo: '+354' }, { nombre: 'Islas Marshall', prefijo: '+692' }, { nombre: 'Islas Salomón', prefijo: '+677' },
+  { nombre: 'Israel', prefijo: '+972' }, { nombre: 'Italia', prefijo: '+39' }, { nombre: 'Jamaica', prefijo: '+1' }, { nombre: 'Japón', prefijo: '+81' },
+  { nombre: 'Jordania', prefijo: '+962' }, { nombre: 'Kazajistán', prefijo: '+7' }, { nombre: 'Kenia', prefijo: '+254' }, { nombre: 'Kirguistán', prefijo: '+996' },
+  { nombre: 'Kiribati', prefijo: '+686' }, { nombre: 'Kuwait', prefijo: '+965' }, { nombre: 'Laos', prefijo: '+856' }, { nombre: 'Lesoto', prefijo: '+266' },
+  { nombre: 'Letonia', prefijo: '+371' }, { nombre: 'Líbano', prefijo: '+961' }, { nombre: 'Liberia', prefijo: '+231' }, { nombre: 'Libia', prefijo: '+218' },
+  { nombre: 'Liechtenstein', prefijo: '+423' }, { nombre: 'Lituania', prefijo: '+370' }, { nombre: 'Luxemburgo', prefijo: '+352' }, { nombre: 'Macedonia del Norte', prefijo: '+389' },
+  { nombre: 'Madagascar', prefijo: '+261' }, { nombre: 'Malasia', prefijo: '+60' }, { nombre: 'Malaui', prefijo: '+265' }, { nombre: 'Maldivas', prefijo: '+960' },
+  { nombre: 'Malí', prefijo: '+223' }, { nombre: 'Malta', prefijo: '+356' }, { nombre: 'Marruecos', prefijo: '+212' }, { nombre: 'Mauricio', prefijo: '+230' },
+  { nombre: 'Mauritania', prefijo: '+222' }, { nombre: 'México', prefijo: '+52' }, { nombre: 'Micronesia', prefijo: '+691' }, { nombre: 'Moldavia', prefijo: '+373' },
+  { nombre: 'Mónaco', prefijo: '+377' }, { nombre: 'Mongolia', prefijo: '+976' }, { nombre: 'Montenegro', prefijo: '+382' }, { nombre: 'Mozambique', prefijo: '+258' },
+  { nombre: 'Namibia', prefijo: '+264' }, { nombre: 'Nauru', prefijo: '+674' }, { nombre: 'Nepal', prefijo: '+977' }, { nombre: 'Nicaragua', prefijo: '+505' },
+  { nombre: 'Níger', prefijo: '+227' }, { nombre: 'Nigeria', prefijo: '+234' }, { nombre: 'Noruega', prefijo: '+47' }, { nombre: 'Nueva Zelanda', prefijo: '+64' },
+  { nombre: 'Omán', prefijo: '+968' }, { nombre: 'Países Bajos', prefijo: '+31' }, { nombre: 'Pakistán', prefijo: '+92' }, { nombre: 'Palaos', prefijo: '+680' },
+  { nombre: 'Panamá', prefijo: '+507' }, { nombre: 'Papúa Nueva Guinea', prefijo: '+675' }, { nombre: 'Paraguay', prefijo: '+595' }, { nombre: 'Perú', prefijo: '+51' },
+  { nombre: 'Polonia', prefijo: '+48' }, { nombre: 'Portugal', prefijo: '+351' }, { nombre: 'Reino Unido', prefijo: '+44' }, { nombre: 'República Centroafricana', prefijo: '+236' },
+  { nombre: 'República Checa', prefijo: '+420' }, { nombre: 'República Democrática del Congo', prefijo: '+243' }, { nombre: 'República Dominicana', prefijo: '+1' },
+  { nombre: 'Ruanda', prefijo: '+250' }, { nombre: 'Rumania', prefijo: '+40' }, { nombre: 'Rusia', prefijo: '+7' }, { nombre: 'Samoa', prefijo: '+685' },
+  { nombre: 'San Cristóbal y Nieves', prefijo: '+1' }, { nombre: 'San Marino', prefijo: '+378' }, { nombre: 'San Vicente y las Granadinas', prefijo: '+1' },
+  { nombre: 'Santa Lucía', prefijo: '+1' }, { nombre: 'Santo Tomé y Príncipe', prefijo: '+239' }, { nombre: 'Senegal', prefijo: '+221' }, { nombre: 'Serbia', prefijo: '+381' },
+  { nombre: 'Seychelles', prefijo: '+248' }, { nombre: 'Sierra Leona', prefijo: '+232' }, { nombre: 'Singapur', prefijo: '+65' }, { nombre: 'Siria', prefijo: '+963' },
+  { nombre: 'Somalia', prefijo: '+252' }, { nombre: 'Sri Lanka', prefijo: '+94' }, { nombre: 'Suazilandia', prefijo: '+268' }, { nombre: 'Sudáfrica', prefijo: '+27' },
+  { nombre: 'Sudán', prefijo: '+249' }, { nombre: 'Sudán del Sur', prefijo: '+211' }, { nombre: 'Suecia', prefijo: '+46' }, { nombre: 'Suiza', prefijo: '+41' },
+  { nombre: 'Surinam', prefijo: '+597' }, { nombre: 'Tailandia', prefijo: '+66' }, { nombre: 'Tanzania', prefijo: '+255' }, { nombre: 'Tayikistán', prefijo: '+992' },
+  { nombre: 'Timor Oriental', prefijo: '+670' }, { nombre: 'Togo', prefijo: '+228' }, { nombre: 'Tonga', prefijo: '+676' }, { nombre: 'Trinidad y Tobago', prefijo: '+1' },
+  { nombre: 'Túnez', prefijo: '+216' }, { nombre: 'Turkmenistán', prefijo: '+993' }, { nombre: 'Turquía', prefijo: '+90' }, { nombre: 'Tuvalu', prefijo: '+688' },
+  { nombre: 'Ucrania', prefijo: '+380' }, { nombre: 'Uganda', prefijo: '+256' }, { nombre: 'Uruguay', prefijo: '+598' }, { nombre: 'Uzbekistán', prefijo: '+998' },
+  { nombre: 'Vanuatu', prefijo: '+678' }, { nombre: 'Venezuela', prefijo: '+58' }, { nombre: 'Vietnam', prefijo: '+84' }, { nombre: 'Yemen', prefijo: '+967' },
+  { nombre: 'Yibuti', prefijo: '+253' }, { nombre: 'Zambia', prefijo: '+260' }, { nombre: 'Zimbabue', prefijo: '+263' }
+];
 
 function generarNumeroPedido(): string {
   const fecha  = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -20,11 +73,9 @@ function generarNumeroPedido(): string {
 // Formateador para poner espacios en el teléfono (ej: 600 000 000)
 function formatearTelefono(tel: string): string {
   if (!tel) return '';
-  // Si tiene más de 6 dígitos: XXX XXX XXX
   if (tel.length > 6) {
     return `${tel.slice(0, 3)} ${tel.slice(3, 6)} ${tel.slice(6, 9)}`;
   }
-  // Si tiene más de 3 dígitos: XXX XXX
   if (tel.length > 3) {
     return `${tel.slice(0, 3)} ${tel.slice(3)}`;
   }
@@ -55,16 +106,10 @@ export function Checkout() {
   const [exito,      setExito]      = useState(false);
   const [numeroPedido, setNumeroPedido] = useState('');
 
-  // Lógica de Prefijos según el País
+  // Busca automáticamente el prefijo del país seleccionado
   const getPrefijoTelefono = () => {
-    switch (pais) {
-      case 'España':   return '+34';
-      case 'Portugal': return '+351';
-      case 'Francia':  return '+33';
-      case 'Italia':   return '+39';
-      case 'Alemania': return '+49';
-      default:         return '+34';
-    }
+    const paisSeleccionado = PAISES.find(p => p.nombre === pais);
+    return paisSeleccionado ? paisSeleccionado.prefijo : '+34';
   };
 
   // Si el carrito está vacío y no hay éxito, volver al carrito
@@ -109,7 +154,7 @@ export function Checkout() {
     try {
       const numPedido = generarNumeroPedido();
 
-      // 1. Guardar dirección de envío (Ahora enviamos el 'pais' dinámico)
+      // 1. Guardar dirección de envío
       const { data: dirData, error: dirError } = await supabase
         .from('direcciones_envio')
         .insert({
@@ -119,7 +164,7 @@ export function Checkout() {
           codigo_postal:    cp,
           ciudad:           ciudad,
           provincia:        provincia,
-          pais:             pais, // Se guarda el país elegido
+          pais:             pais, // Se guarda el país real
           telefono:         telefono,
           es_predeterminada: false,
         })
@@ -205,7 +250,7 @@ export function Checkout() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* Selector de País */}
+                {/* Selector Exhaustivo de País */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">País *</label>
                   <div className="relative">
@@ -215,11 +260,9 @@ export function Checkout() {
                       onChange={e => setPais(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-slate-700"
                     >
-                      <option value="España">🇪🇸 España</option>
-                      <option value="Portugal">🇵🇹 Portugal</option>
-                      <option value="Francia">🇫🇷 Francia</option>
-                      <option value="Italia">🇮🇹 Italia</option>
-                      <option value="Alemania">🇩🇪 Alemania</option>
+                      {PAISES.map(p => (
+                        <option key={p.nombre} value={p.nombre}>{p.nombre}</option>
+                      ))}
                     </select>
                     {/* Flechita para el select personalizado */}
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
@@ -229,7 +272,7 @@ export function Checkout() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Provincia</label>
+                  <label className="text-sm font-semibold text-slate-700">Provincia / Región</label>
                   <input
                     type="text" value={provincia}
                     onChange={e => setProvincia(e.target.value)}
@@ -268,26 +311,28 @@ export function Checkout() {
                     <input
                       required
                       type="tel"
-                      // Mostramos el valor ya formateado (con espacios)
                       value={formatearTelefono(telefono)}
                       onChange={e => {
-                        // Limpiamos los espacios para comprobar la longitud real
                         const soloNumeros = e.target.value.replace(/\D/g, ''); 
                         if (soloNumeros.length <= 9) {
-                          setTelefono(soloNumeros); // Guardamos internamente en el estado SIN espacios
+                          setTelefono(soloNumeros); 
                         }
                       }}
-                      // Ajustamos el padding-left dependiendo de lo largo que sea el prefijo (+34 vs +351)
-                      className={`w-full ${getPrefijoTelefono().length > 3 ? 'pl-16' : 'pl-14'} pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all`}
+                      // Ajustamos el margen dependiendo del tamaño del prefijo elegido (algunos prefijos como +1-242 son muy largos)
+                      className={`w-full ${getPrefijoTelefono().length > 4 ? 'pl-16' : 'pl-14'} pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all`}
                       placeholder="600 000 000"
                     />
                   </div>
                 </div>
 
+                {/* Código Postal Limitado */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Código Postal *</label>
                   <input
-                    required type="text" value={cp}
+                    required 
+                    type="text" 
+                    value={cp}
+                    maxLength={10} // Restricción universal de código postal máximo
                     onChange={e => setCp(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     placeholder="28001"
