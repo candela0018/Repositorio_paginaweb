@@ -139,7 +139,7 @@ const FORM_VACIO: FormProducto = {
 
 const ESTADOS_PEDIDO = [
   { value: 'pendiente',   label: 'Pendiente',   color: 'yellow' },
-  { value: 'confirmado',  label: 'Confirmado',  color: 'blue'   },
+  { value: 'procesando',  label: 'Confirmado',  color: 'blue'   },
   { value: 'enviado',     label: 'Enviado',     color: 'purple' },
   { value: 'entregado',   label: 'Entregado',   color: 'green'  },
   { value: 'cancelado',   label: 'Cancelado',   color: 'red'    },
