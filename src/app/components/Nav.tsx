@@ -1,25 +1,13 @@
-import { Link, useLocation, useNavigate } from "react-router";
-import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart, LogOut, Settings } from "lucide-react";
+import { Link, useLocation } from "react-router";
+import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart } from "lucide-react";
 import { useState } from "react";
-// Rutas exactas desde src/app/components:
-import { useCart } from "../context/CartContext"; 
-import { useAuth } from "../context/AuthContext"; 
-import { supabase } from "../../lib/supabase"; 
-
-//El correo que sera configurado como el administrador de la pagina web online para entrar al panel de administración
-const ADMIN_EMAIL = "admin@ahbsolutions.com";
+import { useCart } from "../context/CartContext";
 
 export function Nav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  
   const location = useLocation();
-  const navigate = useNavigate();
   const { getTotalItems } = useCart();
-  const { user } = useAuth();
-
-  // Comprobamos si el usuario actual es el administrador 
-  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const handleCartClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (location.pathname === '/cart') {
@@ -35,19 +23,6 @@ export function Nav() {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsUserMenuOpen(false);
-    setIsMobileMenuOpen(false);
-    window.location.href = "/";
-  };
-
-  const handleAdminClick = () => {
-    setIsUserMenuOpen(false);
-    setIsMobileMenuOpen(false);
-    navigate("/admin");
-  };
-
   const navLinks = [
     { name: "Inicio", path: "/" },
     { name: "Catálogo", path: "/products" },
@@ -58,7 +33,7 @@ export function Nav() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="bg-white border-b border-gray-200 fixed w-full z-50">
+    <header className="bg-white border-b border-gray-200 fixed w-full z-[9999]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -94,7 +69,7 @@ export function Nav() {
               onMouseEnter={() => setIsUserMenuOpen(true)}
               onMouseLeave={() => setIsUserMenuOpen(false)}
             >
-              <button className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${user ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}>
+              <button className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-blue-600">
                 <UserCircle className="h-7 w-7" />
               </button>
               
@@ -102,53 +77,20 @@ export function Nav() {
               {isUserMenuOpen && (
                 <div className="absolute right-0 pt-2">
                   <div className="w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200">
-                    
-                    {user ? (
-                      <>
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                        </div>
-                        
-                        {/* SOLO SE MUESTRA SI ES ADMIN */}
-                        {isAdmin && (
-                          <button
-                            onClick={handleAdminClick}
-                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
-                          >
-                            <Settings className="h-4 w-4 mr-3 text-gray-400" />
-                            Panel de Admin
-                          </button>
-                        )}
-
-                        <button
-                          onClick={handleLogout}
-                          className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
-                        >
-                          <LogOut className="h-4 w-4 mr-3" />
-                          Cerrar Sesión
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          to="/login"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <LogIn className="h-4 w-4 mr-3 text-gray-400" />
-                          Iniciar Sesión
-                        </Link>
-                        <Link
-                          to="/register"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <User className="h-4 w-4 mr-3 text-gray-400" />
-                          Registrarse
-                        </Link>
-                      </>
-                    )}
-
+                    <Link
+                      to="/login"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <LogIn className="h-4 w-4 mr-3" />
+                      Iniciar Sesión
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <User className="h-4 w-4 mr-3" />
+                      Registrarse
+                    </Link>
                   </div>
                 </div>
               )}
@@ -213,60 +155,22 @@ export function Nav() {
             
             {/* Mobile Auth Divider */}
             <div className="border-t border-gray-200 pt-4 pb-2 mt-4">
-              
-              {user ? (
-                <>
-                  <div className="px-3 mb-2">
-                    <p className="text-sm text-gray-500 font-medium">Conectado como:</p>
-                    <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
-                  </div>
-                  
-                  {/* SOLO SE MUESTRA SI ES ADMIN */}
-                  {isAdmin && (
-                    <button
-                      onClick={handleAdminClick}
-                      className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 text-left"
-                    >
-                      <Settings className="mr-3 h-5 w-5" />
-                      Panel de Admin
-                    </button>
-                  )}
-
-
-                  {/* Para cerrar sesión del usuario */}
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center px-3 py-2 mt-1 rounded-md text-base font-medium bg-red-50 text-red-600 hover:bg-red-100 text-left"
-                  >
-                    <LogOut className="mr-3 h-5 w-5" />
-                    Cerrar Sesión
-                  </button>
-                </>
-              ) : (
-                
-                <>
-                {/* Para que el usuario se logee */}
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                  >
-                    <LogIn className="mr-3 h-5 w-5" />
-                    Iniciar Sesión
-                  </Link>
-
-                  {/* Para que un cliente se cree un nuevo usuario */}
-                  <Link
-                    to="/register"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center px-3 py-2 mt-1 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    <User className="mr-3 h-5 w-5" />
-                    Crear Cuenta
-                  </Link>
-                </>
-              )}
-
+              <Link
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              >
+                <LogIn className="mr-3 h-5 w-5" />
+                Iniciar Sesión
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2 mt-1 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
+              >
+                <User className="mr-3 h-5 w-5" />
+                Crear Cuenta
+              </Link>
             </div>
           </div>
         </div>
