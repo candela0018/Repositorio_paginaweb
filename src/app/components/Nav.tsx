@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation } from "react-router";
 import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
@@ -13,7 +13,6 @@ export function Nav() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   const location = useLocation();
-  const navigate = useNavigate();
   
   const { getTotalItems } = useCart();
   const { user } = useAuth();
@@ -38,7 +37,9 @@ export function Nav() {
     await supabase.auth.signOut();
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
-    navigate('/');
+    
+    // Forzamos una recarga completa de la página enviando al usuario al inicio
+    window.location.href = '/';
   };
 
   const navLinks = [
@@ -116,7 +117,7 @@ export function Nav() {
                         
                         <button
                           onClick={handleLogout}
-                          className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1"
+                          className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1 cursor-pointer"
                         >
                           <LogOut className="h-4 w-4 mr-3" />
                           Cerrar Sesión
@@ -225,7 +226,7 @@ export function Nav() {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full text-left flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                   >
                     <LogOut className="mr-3 h-5 w-5" />
                     Cerrar Sesión
