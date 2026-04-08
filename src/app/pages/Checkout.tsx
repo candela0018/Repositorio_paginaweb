@@ -196,13 +196,25 @@ export function Checkout() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Teléfono</label>
-                  <input
-                    type="tel" value={telefono}
-                    onChange={e => setTelefono(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                    placeholder="600 000 000"
-                  />
+                  <label className="text-sm font-semibold text-slate-700">Teléfono *</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-500 font-medium">+34</span>
+                    </div>
+                    <input
+                      required
+                      type="tel" 
+                      value={telefono}
+                      onChange={e => {
+                        const soloNumeros = e.target.value.replace(/\D/g, ''); 
+                        if (soloNumeros.length <= 9) {
+                          setTelefono(soloNumeros);
+                        }
+                      }}
+                      className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      placeholder="600 000 000"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Provincia</label>
@@ -270,11 +282,18 @@ export function Checkout() {
                     style={{ layout: "vertical", shape: "rect" }}
                     
                     onClick={(data, actions) => {
-                      if (!nombre || !email || !direccion || !ciudad || !cp) {
+                      if (!nombre || !email || !telefono || !direccion || !ciudad || !cp) {
                         setError("Por favor, completa todos los campos obligatorios de envío (*).");
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         return actions.reject();
                       }
+                      
+                      if (telefono.length !== 9) {
+                        setError("El teléfono debe tener exactamente 9 dígitos.");
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return actions.reject();
+                      }
+                      
                       setError(null);
                       return actions.resolve();
                     }}
