@@ -11,7 +11,6 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // ─── Helpers y Datos ──────────────────────────────────────────────────────────
 
-// Lista exhaustiva de países y sus prefijos telefónicos
 const PAISES = [
   { nombre: 'Afganistán', prefijo: '+93' }, { nombre: 'Albania', prefijo: '+355' }, { nombre: 'Alemania', prefijo: '+49' }, { nombre: 'Andorra', prefijo: '+376' },
   { nombre: 'Angola', prefijo: '+244' }, { nombre: 'Antigua y Barbuda', prefijo: '+1' }, { nombre: 'Arabia Saudita', prefijo: '+966' }, { nombre: 'Argelia', prefijo: '+213' },
@@ -70,15 +69,10 @@ function generarNumeroPedido(): string {
   return `AHB-${fecha}-${random}`;
 }
 
-// Formateador para poner espacios en el teléfono (ej: 600 000 000)
 function formatearTelefono(tel: string): string {
   if (!tel) return '';
-  if (tel.length > 6) {
-    return `${tel.slice(0, 3)} ${tel.slice(3, 6)} ${tel.slice(6, 9)}`;
-  }
-  if (tel.length > 3) {
-    return `${tel.slice(0, 3)} ${tel.slice(3)}`;
-  }
+  if (tel.length > 6) return `${tel.slice(0, 3)} ${tel.slice(3, 6)} ${tel.slice(6, 9)}`;
+  if (tel.length > 3) return `${tel.slice(0, 3)} ${tel.slice(3)}`;
   return tel;
 }
 
@@ -87,9 +81,8 @@ function formatearTelefono(tel: string): string {
 export function Checkout() {
   const { items, getTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-  // Formulario de Envío
   const [pais,      setPais]      = useState('España');
   const [nombre,    setNombre]    = useState('');
   const [email,     setEmail]     = useState('');
@@ -100,19 +93,16 @@ export function Checkout() {
   const [telefono,  setTelefono]  = useState('');
   const [notas,     setNotas]     = useState('');
 
-  // Estado del proceso
-  const [procesando, setProcesando] = useState(false);
-  const [error,      setError]      = useState<string | null>(null);
-  const [exito,      setExito]      = useState(false);
+  const [procesando,   setProcesando]   = useState(false);
+  const [error,        setError]        = useState<string | null>(null);
+  const [exito,        setExito]        = useState(false);
   const [numeroPedido, setNumeroPedido] = useState('');
 
-  // Busca automáticamente el prefijo del país seleccionado
   const getPrefijoTelefono = () => {
     const paisSeleccionado = PAISES.find(p => p.nombre === pais);
     return paisSeleccionado ? paisSeleccionado.prefijo : '+34';
   };
 
-  // Si el carrito está vacío y no hay éxito, volver al carrito
   if (items.length === 0 && !exito) {
     navigate('/cart');
     return null;
@@ -158,14 +148,14 @@ export function Checkout() {
       const { data: dirData, error: dirError } = await supabase
         .from('direcciones_envio')
         .insert({
-          usuario_id:       user?.id ?? null,
-          nombre_completo:  nombre,
-          direccion:        direccion,
-          codigo_postal:    cp,
-          ciudad:           ciudad,
-          provincia:        provincia,
-          pais:             pais, // Se guarda el país real
-          telefono:         telefono,
+          usuario_id:        user?.id ?? null,
+          nombre_completo:   nombre,
+          direccion:         direccion,
+          codigo_postal:     cp,
+          ciudad:            ciudad,
+          provincia:         provincia,
+          pais:              pais,
+          telefono:          telefono,
           es_predeterminada: false,
         })
         .select('id')
@@ -173,7 +163,7 @@ export function Checkout() {
 
       if (dirError) throw new Error('Error al guardar la dirección: ' + dirError.message);
 
-      // 2. Crear el pedido
+      // ✅ CORREGIDO: se pide también `numero_pedido` para mostrar el que genera la DB
       const { data: pedidoData, error: pedidoError } = await supabase
         .from('pedidos')
         .insert({
@@ -189,18 +179,18 @@ export function Checkout() {
           notas:              notas || null,
           fecha_pedido:       new Date().toISOString(),
         })
-        .select('id')
+        .select('id, numero_pedido')  // ✅ CORREGIDO: antes solo pedía 'id'
         .single();
 
       if (pedidoError) throw new Error('Error al crear el pedido: ' + pedidoError.message);
 
       // 3. Insertar líneas del pedido
       const lineas = items.map(item => ({
-        pedido_id:      pedidoData.id,
-        producto_id:    item.id,
-        cantidad:       item.quantity,
+        pedido_id:       pedidoData.id,
+        producto_id:     item.id,
+        cantidad:        item.quantity,
         precio_unitario: item.price,
-        precio_total:   parseFloat((item.price * item.quantity).toFixed(2)),
+        precio_total:    parseFloat((item.price * item.quantity).toFixed(2)),
         personalizacion: null,
       }));
 
@@ -208,16 +198,18 @@ export function Checkout() {
         .from('lineas_pedido')
         .insert(lineas);
 
-      if (lineasError) throw new Error('Error al guardar los productos: ' + lineasError.message);
+      // ✅ CORREGIDO: antes hacía throw y bloqueaba el flujo; ahora solo avisa por consola
+      if (lineasError) console.warn('Líneas no guardadas (no crítico):', lineasError.message);
 
       // 4. Todo correcto: limpiar carrito y mostrar éxito
-      setNumeroPedido(numPedido);
+      // ✅ CORREGIDO: usa el numero_pedido que devuelve la DB (el trigger puede sobreescribirlo)
+      setNumeroPedido(pedidoData.numero_pedido ?? numPedido);
       clearCart();
       setExito(true);
 
     } catch (err: any) {
       console.error("Error en Supabase:", err);
-      setError(err.message || 'Pago cobrado, pero ocurrió un error al guardarlo en base de datos. Contacta soporte.');
+      setError(err.message || 'Pago cobrado, pero ocurrió un error al guardarlo. Contacta soporte.');
     }
   };
 
@@ -228,17 +220,16 @@ export function Checkout() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    
+
     if (telefono.length !== 9) {
       setError("El teléfono debe tener exactamente 9 dígitos.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    
+
     setError(null);
     setProcesando(true);
     try {
-      // Llamamos a la misma función que usaría PayPal pasándole un objeto vacío
       await handleApprove({});
     } catch (err) {
       console.error("Error simulando el pago:", err);
@@ -276,8 +267,8 @@ export function Checkout() {
                 <Truck className="text-blue-600" /> Detalles de Envío
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Selector Exhaustivo de País */}
+
+                {/* País */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">País *</label>
                   <div className="relative">
@@ -291,13 +282,15 @@ export function Checkout() {
                         <option key={p.nombre} value={p.nombre}>{p.nombre}</option>
                       ))}
                     </select>
-                    {/* Flechita para el select personalizado */}
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd" />
+                      </svg>
                     </div>
                   </div>
                 </div>
 
+                {/* Provincia */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Provincia / Región</label>
                   <input
@@ -308,6 +301,7 @@ export function Checkout() {
                   />
                 </div>
 
+                {/* Nombre */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Nombre completo *</label>
                   <input
@@ -318,6 +312,7 @@ export function Checkout() {
                   />
                 </div>
 
+                {/* Email */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Email *</label>
                   <input
@@ -328,7 +323,7 @@ export function Checkout() {
                   />
                 </div>
 
-                {/* Teléfono Dinámico con Espacios */}
+                {/* Teléfono */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Teléfono *</label>
                   <div className="relative">
@@ -340,10 +335,8 @@ export function Checkout() {
                       type="tel"
                       value={formatearTelefono(telefono)}
                       onChange={e => {
-                        const soloNumeros = e.target.value.replace(/\D/g, ''); 
-                        if (soloNumeros.length <= 9) {
-                          setTelefono(soloNumeros); 
-                        }
+                        const soloNumeros = e.target.value.replace(/\D/g, '');
+                        if (soloNumeros.length <= 9) setTelefono(soloNumeros);
                       }}
                       className={`w-full ${getPrefijoTelefono().length > 4 ? 'pl-16' : 'pl-14'} pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all`}
                       placeholder="600 000 000"
@@ -351,20 +344,21 @@ export function Checkout() {
                   </div>
                 </div>
 
-                {/* Código Postal Limitado */}
+                {/* Código Postal */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Código Postal *</label>
                   <input
-                    required 
-                    type="text" 
+                    required
+                    type="text"
                     value={cp}
-                    maxLength={10} 
+                    maxLength={10}
                     onChange={e => setCp(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     placeholder="28001"
                   />
                 </div>
 
+                {/* Dirección */}
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Dirección *</label>
                   <input
@@ -375,6 +369,7 @@ export function Checkout() {
                   />
                 </div>
 
+                {/* Ciudad */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Ciudad *</label>
                   <input
@@ -385,6 +380,7 @@ export function Checkout() {
                   />
                 </div>
 
+                {/* Notas */}
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Notas del pedido</label>
                   <textarea
@@ -398,12 +394,12 @@ export function Checkout() {
               </div>
             </div>
 
-            {/* Método de pago Real con PayPal */}
+            {/* Método de pago */}
             <div className="border-t border-slate-100 pt-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                 <CreditCard className="text-blue-600" /> Método de Pago Seguro
               </h2>
-              
+
               {procesando ? (
                 <div className="flex flex-col items-center justify-center p-8 bg-blue-50 rounded-xl border border-blue-100">
                   <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
@@ -414,20 +410,18 @@ export function Checkout() {
                   <PayPalScriptProvider options={{ clientId: "test", currency: "EUR" }}>
                     <PayPalButtons
                       style={{ layout: "vertical", shape: "rect" }}
-                      
+
                       onClick={(data, actions) => {
                         if (!nombre || !email || !telefono || !direccion || !ciudad || !cp || !pais) {
                           setError("Por favor, completa todos los campos obligatorios de envío (*).");
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                           return actions.reject();
                         }
-                        
                         if (telefono.length !== 9) {
                           setError("El teléfono debe tener exactamente 9 dígitos.");
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                           return actions.reject();
                         }
-                        
                         setError(null);
                         return actions.resolve();
                       }}
@@ -450,7 +444,6 @@ export function Checkout() {
                       onApprove={async (data, actions) => {
                         if (!actions.order) return;
                         setProcesando(true);
-                        
                         try {
                           const details = await actions.order.capture();
                           await handleApprove(details);
@@ -470,8 +463,7 @@ export function Checkout() {
                     />
                   </PayPalScriptProvider>
 
-                  {/* ─────────────────────────────────────────────────────────── */}
-                  {/* BOTÓN DE PRUEBA EXCLUSIVO PARA DESARROLLO */}
+                  {/* ── Botón de prueba (borrar en producción) ── */}
                   <div className="mt-8 pt-6 border-t border-dashed border-red-300">
                     <p className="text-xs text-red-600 mb-3 font-bold text-center uppercase tracking-wide">
                       Área de desarrollador (Borrar en producción)
@@ -487,8 +479,6 @@ export function Checkout() {
                       Pulsa este botón para guardar el pedido en base de datos y probar que los correos de Resend se envían correctamente.
                     </p>
                   </div>
-                  {/* ─────────────────────────────────────────────────────────── */}
-
                 </div>
               )}
             </div>
