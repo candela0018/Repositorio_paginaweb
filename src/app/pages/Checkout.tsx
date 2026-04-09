@@ -221,6 +221,33 @@ export function Checkout() {
     }
   };
 
+  // Función para simular el pago (solo para desarrollo)
+  const simularPago = async () => {
+    if (!nombre || !email || !telefono || !direccion || !ciudad || !cp || !pais) {
+      setError("Por favor, completa todos los campos obligatorios de envío (*).");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
+    if (telefono.length !== 9) {
+      setError("El teléfono debe tener exactamente 9 dígitos.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
+    setError(null);
+    setProcesando(true);
+    try {
+      // Llamamos a la misma función que usaría PayPal pasándole un objeto vacío
+      await handleApprove({});
+    } catch (err) {
+      console.error("Error simulando el pago:", err);
+      setError("Ocurrió un error guardando el pedido de prueba.");
+    } finally {
+      setProcesando(false);
+    }
+  };
+
   // ── Formulario e Interfaz ────────────────────────────────────────────────
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
@@ -318,7 +345,6 @@ export function Checkout() {
                           setTelefono(soloNumeros); 
                         }
                       }}
-                      // Ajustamos el margen dependiendo del tamaño del prefijo elegido (algunos prefijos como +1-242 son muy largos)
                       className={`w-full ${getPrefijoTelefono().length > 4 ? 'pl-16' : 'pl-14'} pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all`}
                       placeholder="600 000 000"
                     />
@@ -332,7 +358,7 @@ export function Checkout() {
                     required 
                     type="text" 
                     value={cp}
-                    maxLength={10} // Restricción universal de código postal máximo
+                    maxLength={10} 
                     onChange={e => setCp(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     placeholder="28001"
@@ -384,64 +410,86 @@ export function Checkout() {
                   <p className="text-blue-800 font-medium">Procesando y guardando tu pedido...</p>
                 </div>
               ) : (
-                <PayPalScriptProvider options={{ clientId: "test", currency: "EUR" }}>
-                  <PayPalButtons
-                    style={{ layout: "vertical", shape: "rect" }}
-                    
-                    onClick={(data, actions) => {
-                      if (!nombre || !email || !telefono || !direccion || !ciudad || !cp || !pais) {
-                        setError("Por favor, completa todos los campos obligatorios de envío (*).");
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        return actions.reject();
-                      }
+                <div className="space-y-6">
+                  <PayPalScriptProvider options={{ clientId: "test", currency: "EUR" }}>
+                    <PayPalButtons
+                      style={{ layout: "vertical", shape: "rect" }}
                       
-                      if (telefono.length !== 9) {
-                        setError("El teléfono debe tener exactamente 9 dígitos.");
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        return actions.reject();
-                      }
-                      
-                      setError(null);
-                      return actions.resolve();
-                    }}
+                      onClick={(data, actions) => {
+                        if (!nombre || !email || !telefono || !direccion || !ciudad || !cp || !pais) {
+                          setError("Por favor, completa todos los campos obligatorios de envío (*).");
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          return actions.reject();
+                        }
+                        
+                        if (telefono.length !== 9) {
+                          setError("El teléfono debe tener exactamente 9 dígitos.");
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          return actions.reject();
+                        }
+                        
+                        setError(null);
+                        return actions.resolve();
+                      }}
 
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        intent: "CAPTURE",
-                        purchase_units: [
-                          {
-                            description: "Pedido en AHB Solutions",
-                            amount: {
-                              currency_code: "EUR",
-                              value: total.toFixed(2),
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          intent: "CAPTURE",
+                          purchase_units: [
+                            {
+                              description: "Pedido en AHB Solutions",
+                              amount: {
+                                currency_code: "EUR",
+                                value: total.toFixed(2),
+                              },
                             },
-                          },
-                        ],
-                      });
-                    }}
+                          ],
+                        });
+                      }}
 
-                    onApprove={async (data, actions) => {
-                      if (!actions.order) return;
-                      setProcesando(true);
-                      
-                      try {
-                        const details = await actions.order.capture();
-                        await handleApprove(details);
-                      } catch (err: any) {
-                        console.error("Error capturando pago:", err);
-                        setError("Ocurrió un error en la conexión con PayPal. Inténtalo de nuevo.");
-                      } finally {
+                      onApprove={async (data, actions) => {
+                        if (!actions.order) return;
+                        setProcesando(true);
+                        
+                        try {
+                          const details = await actions.order.capture();
+                          await handleApprove(details);
+                        } catch (err: any) {
+                          console.error("Error capturando pago:", err);
+                          setError("Ocurrió un error en la conexión con PayPal. Inténtalo de nuevo.");
+                        } finally {
+                          setProcesando(false);
+                        }
+                      }}
+
+                      onError={(err) => {
+                        console.error("Error PayPal:", err);
+                        setError("Se ha cancelado el pago o ha ocurrido un error. Inténtalo de nuevo.");
                         setProcesando(false);
-                      }
-                    }}
+                      }}
+                    />
+                  </PayPalScriptProvider>
 
-                    onError={(err) => {
-                      console.error("Error PayPal:", err);
-                      setError("Se ha cancelado el pago o ha ocurrido un error. Inténtalo de nuevo.");
-                      setProcesando(false);
-                    }}
-                  />
-                </PayPalScriptProvider>
+                  {/* ─────────────────────────────────────────────────────────── */}
+                  {/* BOTÓN DE PRUEBA EXCLUSIVO PARA DESARROLLO */}
+                  <div className="mt-8 pt-6 border-t border-dashed border-red-300">
+                    <p className="text-xs text-red-600 mb-3 font-bold text-center uppercase tracking-wide">
+                      Área de desarrollador (Borrar en producción)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={simularPago}
+                      className="w-full bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 border-2 border-red-200 hover:border-red-300 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
+                    >
+                      Simular Compra de Prueba (Saltar PayPal)
+                    </button>
+                    <p className="text-xs text-slate-500 text-center mt-2">
+                      Pulsa este botón para guardar el pedido en base de datos y probar que los correos de Resend se envían correctamente.
+                    </p>
+                  </div>
+                  {/* ─────────────────────────────────────────────────────────── */}
+
+                </div>
               )}
             </div>
 
