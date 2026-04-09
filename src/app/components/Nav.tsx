@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart, LogOut, Settings } from "lucide-react";
+import { Box, User, LogIn, Menu, X, UserCircle, ShoppingCart, LogOut, Settings, LayoutList } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -114,6 +114,14 @@ export function Nav() {
                             Panel de Administración
                           </Link>
                         )}
+
+                        <Link
+                          to="/profile"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <LayoutList className="h-4 w-4 mr-3" />
+                          Mi Perfil
+                        </Link>
                         
                         <button
                           onClick={handleLogout}
@@ -223,6 +231,15 @@ export function Nav() {
                       Panel de Administración
                     </Link>
                   )}
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <LayoutList className="mr-3 h-5 w-5" />
+                    Mi Perfil
+                  </Link>
 
                   <button
                     onClick={handleLogout}

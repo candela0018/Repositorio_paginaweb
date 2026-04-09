@@ -10,6 +10,7 @@ import { Admin } from "./pages/Admin";
 import { Cart } from "./pages/Cart";
 import { Offers } from "./pages/Offers";
 import { Checkout } from "./pages/Checkout";
+import { Profile } from "./pages/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "register", Component: Register },
       { path: "cart", Component: Cart },
       { path: "checkout", Component: Checkout },
+      { path: "profile", Component: Profile },
 
     ],
   },
